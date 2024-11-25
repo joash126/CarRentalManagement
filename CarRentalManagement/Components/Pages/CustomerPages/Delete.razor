@@ -3,6 +3,9 @@
 @using CarRentalManagement.Domain
 @inject IDbContextFactory<CarRentalManagement.Data.CarRentalManagementContext> DbFactory
 @inject NavigationManager NavigationManager
+@*If not authorize, then return page non found error 404*@
+@attribute [Authorize(Roles="Administrator")]
+
 
 <PageTitle>Delete</PageTitle>
 

@@ -1,5 +1,6 @@
 ﻿@implements IDisposable
 @inject NavigationManager NavigationManager
+
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="">CarRentalManagement</a>
@@ -8,6 +9,7 @@
 
 <input type="checkbox" title="Navigation menu" class="navbar-toggler" />
 
+<!--Code that Defines the Nav Menu-->
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
         <div class="nav-item px-3">
@@ -15,25 +17,57 @@
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
+        
+        <!--This approach only removes the list item from the rendered output. It doesn't prevent the user from navigating to the component. -->
         <AuthorizeView>
+            <!--Authenticated (Signed In) means they are authorized-->
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
                         <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
                     </NavLink>
                 </div>
+
+                <AuthorizeView Roles="Administrator" Context="InnerContext">                
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="makes">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Makes
+                        </NavLink>
+                    </div>
+
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="models">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Models
+                        </NavLink>
+                    </div>
+
+
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="colours">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Colours
+                        </NavLink>
+                    </div>
+
+                       <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="vehicles">
+                            <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Vehicles
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="customers">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Customers
+                    </NavLink>
+                </div>
+
+                    <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="bookings">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>Bookings
+                    </NavLink>
+                </div>
+                
+
                 <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
@@ -44,6 +78,9 @@
                     </form>
                 </div>
             </Authorized>
+
+
+            <!--Unauthenticated (Signed out) means they are unauthorized-->
             <NotAuthorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
@@ -57,11 +94,6 @@
                 </div>
             </NotAuthorized>
         </AuthorizeView>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="samplepage">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Sample page
-            </NavLink>
-        </div>
 
     </nav>
 </div>

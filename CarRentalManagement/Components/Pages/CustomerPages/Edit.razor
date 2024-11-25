@@ -20,7 +20,7 @@ else
         <div class="col-md-4">
             <EditForm method="post" Model="Customer" OnValidSubmit="UpdateCustomer" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
+                <ValidationSummary role="alert" />
                 <input type="hidden" name="Customer.Id" value="@Customer.Id" />
                 <div class="mb-3">
                     <label for="drivinglicense" class="form-label">DrivingLicense:</label>
@@ -42,22 +42,22 @@ else
                     <InputText id="emailaddress" @bind-Value="Customer.EmailAddress" class="form-control" />
                     <ValidationMessage For="() => Customer.EmailAddress" class="text-danger" />
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" hidden>
                     <label for="datecreated" class="form-label">DateCreated:</label>
                     <InputDate id="datecreated" @bind-Value="Customer.DateCreated" class="form-control" />
                     <ValidationMessage For="() => Customer.DateCreated" class="text-danger" />
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" hidden>
                     <label for="dateupdated" class="form-label">DateUpdated:</label>
                     <InputDate id="dateupdated" @bind-Value="Customer.DateUpdated" class="form-control" />
                     <ValidationMessage For="() => Customer.DateUpdated" class="text-danger" />
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" hidden>
                     <label for="createdby" class="form-label">CreatedBy:</label>
                     <InputText id="createdby" @bind-Value="Customer.CreatedBy" class="form-control" />
                     <ValidationMessage For="() => Customer.CreatedBy" class="text-danger" />
                 </div>
-                <div class="mb-3">
+                <div class="mb-3" hidden>
                     <label for="updatedby" class="form-label">UpdatedBy:</label>
                     <InputText id="updatedby" @bind-Value="Customer.UpdatedBy" class="form-control" />
                     <ValidationMessage For="() => Customer.UpdatedBy" class="text-danger" />
@@ -73,47 +73,49 @@ else
 </div>
 
 @code {
+    @inject AuthenticationStateProvider authenticationStateProvider
+
     [SupplyParameterFromQuery]
     private int Id { get; set; }
 
-    [SupplyParameterFromForm]
     private Customer? Customer { get; set; }
+    private string userId = "System";
 
     protected override async Task OnInitializedAsync()
     {
-        using var context = DbFactory.CreateDbContext();
-        Customer ??= await context.Customer.FirstOrDefaultAsync(m => m.Id == Id);
+        // Fetch the authenticated user's ID
+        var authState = await authenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdClaim = user.FindFirst("userId");
 
-        if (Customer is null)
+        if (userIdClaim != null)
         {
-            NavigationManager.NavigateTo("notfound");
+            userId = userIdClaim.Value;
+            using var context = DbFactory.CreateDbContext();
+            Customer = await context.Customer.FirstOrDefaultAsync(c => c.Id == Id);
         }
     }
 
-    // To protect from overposting attacks, enable the specific properties you want to bind to.
-    // For more information, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
     private async Task UpdateCustomer()
     {
-        using var context = DbFactory.CreateDbContext();
-        context.Attach(Customer!).State = EntityState.Modified;
-
-        try
+        if (Customer != null)
         {
+            using var context = DbFactory.CreateDbContext();
+
+            // Set UpdatedBy and DateUpdated
+            Customer.UpdatedBy = userId;
+            Customer.DateUpdated = DateTime.Now;
+
+            // Attach and set the entity state to Modified
+            context.Attach(Customer);
+            context.Entry(Customer).State = EntityState.Modified;
+
+            // Ensure all fields are updated
             await context.SaveChangesAsync();
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            if (!CustomerExists(Customer!.Id))
-            {
-                NavigationManager.NavigateTo("notfound");
-            }
-            else
-            {
-                throw;
-            }
-        }
 
-        NavigationManager.NavigateTo("/customers");
+            // Redirect to the customer list page
+            NavigationManager.NavigateTo("/customers");
+        }
     }
 
     private bool CustomerExists(int id)
